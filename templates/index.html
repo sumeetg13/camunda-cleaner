@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camunda Process Cleaner</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        input { padding: 6px; width: 300px; }
+        button { padding: 8px 16px; margin-top: 10px; }
+        .error { color: red; }
+        .success { color: green; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        td, th { border: 1px solid #ccc; padding: 8px; }
+    </style>
+</head>
+<body>
+
+<h2>Camunda Process Cleanup Tool</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <p class="{{ category }}">{{ message }}</p>
+  {% endfor %}
+{% endwith %}
+
+<form method="post">
+    <label>Process Definition Key:</label><br>
+    <input name="process_key" placeholder="example-process" required>
+    <br>
+    <button type="submit">Fetch Instances</button>
+</form>
+
+{% if instances %}
+<h3>Running Process Instances</h3>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Business Key</th>
+        <th>Started</th>
+    </tr>
+    {% for i in instances %}
+    <tr>
+        <td>{{ i.id }}</td>
+        <td>{{ i.businessKey }}</td>
+        <td>{{ i.startTime }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<form method="post" action="/cleanup">
+    <input type="hidden" name="process_key" value="{{ process_key }}">
+    <button style="background:red;color:white;">
+        Delete ALL Instances & Deployments
+    </button>
+</form>
+{% endif %}
+
+{% if deployments %}
+<h3>Deployments</h3>
+<ul>
+    {% for d in deployments %}
+    <li>{{ d }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+</body>
+</html>

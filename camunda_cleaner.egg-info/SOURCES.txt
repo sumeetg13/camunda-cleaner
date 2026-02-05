@@ -1,0 +1,8 @@
+MANIFEST.in
+pyproject.toml
+camunda_cleaner.egg-info/PKG-INFO
+camunda_cleaner.egg-info/SOURCES.txt
+camunda_cleaner.egg-info/dependency_links.txt
+camunda_cleaner.egg-info/entry_points.txt
+camunda_cleaner.egg-info/requires.txt
+camunda_cleaner.egg-info/top_level.txt

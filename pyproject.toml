@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "camunda-cleaner"
+version = "0.1.0"
+description = "Camunda BPM process cleanup UI"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "flask",
+  "requests"
+]
+
+[project.scripts]
+camunda-cleaner = "camunda_cleaner.app:main"
+
+[tool.setuptools]
+include-package-data = true

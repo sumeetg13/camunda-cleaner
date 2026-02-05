@@ -1,0 +1,2 @@
+[console_scripts]
+camunda-cleaner = camunda_cleaner.app:main

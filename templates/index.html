@@ -1,67 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Camunda Process Cleaner</title>
+    <title>Camunda Cleaner</title>
     <style>
         body { font-family: Arial; margin: 40px; }
-        input { padding: 6px; width: 300px; }
-        button { padding: 8px 16px; margin-top: 10px; }
-        .error { color: red; }
+        button { padding: 6px 12px; margin-left: 6px; }
+        .danger { background: red; color: white; }
         .success { color: green; }
-        table { border-collapse: collapse; margin-top: 20px; }
-        td, th { border: 1px solid #ccc; padding: 8px; }
+        .error { color: red; }
+        .instance { margin-left: 20px; }
     </style>
 </head>
 <body>
 
-<h2>Camunda Process Cleanup Tool</h2>
+<h2>Camunda Process Cleaner</h2>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% for category, message in messages %}
-    <p class="{{ category }}">{{ message }}</p>
-  {% endfor %}
-{% endwith %}
+{% for category, message in get_flashed_messages(with_categories=true) %}
+<p class="{{ category }}">{{ message }}</p>
+{% endfor %}
 
 <form method="post">
-    <label>Process Definition Key:</label><br>
-    <input name="process_key" placeholder="example-process" required>
-    <br>
-    <button type="submit">Fetch Instances</button>
+    <input name="process_key" placeholder="process definition key" required>
+    <button type="submit">Fetch</button>
 </form>
-
-{% if instances %}
-<h3>Running Process Instances</h3>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Business Key</th>
-        <th>Started</th>
-    </tr>
-    {% for i in instances %}
-    <tr>
-        <td>{{ i.id }}</td>
-        <td>{{ i.businessKey }}</td>
-        <td>{{ i.startTime }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<form method="post" action="/cleanup">
-    <input type="hidden" name="process_key" value="{{ process_key }}">
-    <button style="background:red;color:white;">
-        Delete ALL Instances & Deployments
-    </button>
-</form>
-{% endif %}
 
 {% if deployments %}
-<h3>Deployments</h3>
+
+<hr>
+
+{% for dep_id, dep in deployments.items() %}
+<h3>Deployment: {{ dep_id }}</h3>
+
+<form method="post" action="/delete-deployment-instances">
+    <input type="hidden" name="deployment_id" value="{{ dep_id }}">
+    <button class="danger">
+        Delete ALL Process Instances for Deployment
+    </button>
+</form>
+
+{% for pd in dep.processDefinitions %}
+<p>
+    <b>{{ pd.key }} v{{ pd.version }}</b>
+</p>
+
+{% if pd.instances %}
 <ul>
-    {% for d in deployments %}
-    <li>{{ d }}</li>
+    {% for inst in pd.instances %}
+    <li class="instance" id="instance-{{ inst.id }}">
+    {{ inst.id }}
+    <button
+        class="danger"
+        onclick="deleteInstance('{{ inst.id }}')">
+        ❌
+    </button>
+</li>
     {% endfor %}
 </ul>
+{% else %}
+<p class="instance">No running instances</p>
+{% endif %}
+
+{% endfor %}
+<hr>
+{% endfor %}
+
+<form method="post" action="/delete-all-deployments">
+    <input type="hidden" name="process_key" value="{{ process_key }}">
+    <button class="danger">
+        Delete ALL Deployments
+    </button>
+</form>
+
 {% endif %}
 
 </body>
 </html>
+
+<script>
+function deleteInstance(instanceId) {
+    if (!confirm("Delete this process instance?")) return;
+
+    fetch("/delete-instance", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ instance_id: instanceId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const el = document.getElementById("instance-" + instanceId);
+            if (el) el.remove();
+        } else {
+            alert("Failed to delete instance");
+        }
+    })
+    .catch(() => alert("Error deleting instance"));
+}
+</script>
